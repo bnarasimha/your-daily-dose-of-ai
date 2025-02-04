@@ -8,18 +8,22 @@ from daily_updates_scraper import daily_updates_scraper_agent, daily_updates_scr
 from daily_updates_podcaster import podcast_agent, podcast_task
 from crewai.tools import tool
 from gtts import gTTS
+from database import URLDatabase
 
 load_dotenv()
 
 class DailyUpdatesFlow(Flow):    
     @start()
     def find_daily_updates(self):  
+        db = URLDatabase()
+        custom_urls = [url[0] for url in db.get_all_urls()]  # Extract URLs from tuples
+        print(custom_urls)
         daily_updates_finding_crew = Crew(
             agents=[daily_updates_finder], 
             tasks=[daily_updates_task]
         )
 
-        daily_updates = daily_updates_finding_crew.kickoff()
+        daily_updates = daily_updates_finding_crew.kickoff(inputs={"custom_urls": custom_urls})
         return daily_updates 
     
     @listen(find_daily_updates)

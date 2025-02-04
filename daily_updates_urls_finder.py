@@ -15,7 +15,7 @@ daily_updates_finder = Agent(
 )
 
 daily_updates_task = Task(
-    description="Find the Urls which contains latest news on AI",
+    description="Find the Urls which contains latest news on AI. Once you found the urls, add these custom urls: '{custom_urls}' selected by user to the list you prepared.",
     expected_output="Urls which contains latest news on AI.",
     agent=daily_updates_finder,
     tools=[SerperDevTool(query="latest AI news")],

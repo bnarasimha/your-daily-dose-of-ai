@@ -4,6 +4,7 @@ from datetime import datetime
 import pandas as pd
 from dotenv import load_dotenv
 from daily_updates_urls_finder import daily_updates_task
+from database import URLDatabase
 
 load_dotenv()
 
@@ -32,36 +33,81 @@ def get_audio_files():
 
 def main():
     st.title("Your Daily Dose of AI")
-    st.write("Listen to audio files organized by date")
     
-    # Get audio files
-    audio_files = get_audio_files()
+    # Initialize database
+    db = URLDatabase()
     
-    if not audio_files:
-        st.warning("No audio files found. Please check the audio directory.")
-        return
+    # Create tabs
+    tab1, tab2 = st.tabs(["🎧 Listen Podcasts", "➕ Add Custom URL"])
     
-    # Group files by date
-    df = pd.DataFrame(audio_files)
-    dates = df['date'].unique()
-    
-    # Display audio files grouped by date
-    for date in dates:
-        # Create a date header with formatting
-        st.header(date.strftime('%B %d, %Y'))
+    # Tab 1: Listen to Podcasts
+    with tab1:
+        st.header("Listen to audio files")
         
-        # Get files for this date
-        daily_files = df[df['date'] == date]
+        # Get audio files
+        audio_files = get_audio_files()
         
-        # Create a container for this date's files
-        with st.container():
-            for _, row in daily_files.iterrows():
-                st.write(f"📁 {row['filename']}")
-                st.audio(row['path'])
+        if not audio_files:
+            st.warning("No audio files found. Please check the audio directory.")
+            return
+        
+        # Group files by date
+        df = pd.DataFrame(audio_files)
+        dates = df['date'].unique()
+        
+        # Display audio files grouped by date
+        for date in dates:
+            st.subheader(date.strftime('%B %d, %Y'))
+            
+            # Get files for this date
+            daily_files = df[df['date'] == date]
+            
+            # Create a container for this date's files
+            with st.container():
+                for _, row in daily_files.iterrows():
+                    col1, col2 = st.columns([1, 4])
+                    with col1:
+                        st.write(f"📁 {row['filename']}")
+                    with col2:
+                        st.audio(row['path'])
                 st.divider()
+    
+    # Tab 2: Add Custom URL
+    with tab2:
+        st.header("Add Custom URL")
+        new_url = st.text_input(
+            "Enter URL to include in podcast:", 
+            placeholder="https://example.com"
+        )
         
-        # Add some spacing between dates
-        st.markdown("<br>", unsafe_allow_html=True)
+        col1, col2, col3 = st.columns([2, 1, 2])
+        with col2:
+            if st.button("Add URL", use_container_width=True):
+                if new_url:
+                    if db.add_url(new_url):
+                        #st.success(f"URL added successfully: {new_url}")
+                        st.rerun()
+                    else:
+                        st.warning("URL already exists in database")
+                else:
+                    st.warning("Please enter a valid URL")
+        
+        # Display existing URLs
+        st.subheader("Saved URLs")
+        urls = db.get_all_urls()
+        if urls:
+            for url, added_date in urls:
+                col1, col2, col3 = st.columns([3, 1, 1])
+                with col1:
+                    st.write(url)
+                with col2:
+                    st.write(datetime.strptime(added_date, '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%d'))
+                with col3:
+                    if st.button("Delete", key=url):
+                        if db.delete_url(url):
+                            st.rerun()
+        else:
+            st.info("No custom URLs added yet")
 
 if __name__ == "__main__":
     main()
