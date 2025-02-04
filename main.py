@@ -38,11 +38,12 @@ def main():
     db = URLDatabase()
     
     # Create tabs
-    tab1, tab2 = st.tabs(["🎧 Listen AI Doses", "➕ Create New AI Dose"])
+    tab1, tab2, tab3 = st.tabs(["🎧 Listen AI Doses", "➕ Create New AI Dose", "⚙️ Manage AI Doses"])
     
     # Tab 1: Listen to Podcasts
     with tab1:
-        st.header("Listen to audio files")
+        
+        st.write("")
         
         # Get audio files
         audio_files = get_audio_files()
@@ -65,7 +66,7 @@ def main():
             # Create a container for this date's files
             with st.container():
                 for _, row in daily_files.iterrows():
-                    col1, col2 = st.columns([1, 4])
+                    col1, col2 = st.columns([2, 2])
                     with col1:
                         st.write(f"📁 {row['filename']}")
                     with col2:
@@ -138,6 +139,74 @@ def main():
         else:
             st.info("No custom URLs added yet")
 
+    # Tab 3: Manage AI Doses
+    with tab3:
+        st.header("Manage AI Doses")
+        
+        # Get audio files
+        audio_dir = "audio_files"
+        reports_dir = "daily_reports"
+        
+        if not os.path.exists(audio_dir):
+            st.warning("No audio files found.")
+            return
+        
+        # Get all audio files
+        audio_files = []
+        for file in os.listdir(audio_dir):
+            if file.endswith(('.mp3', '.wav', '.ogg')):
+                try:
+                    # Extract date from filename (assuming format: YYYY-MM-DD_HH-MM-SS_podcast.mp3)
+                    date_str = file.split('_')[0]
+                    time_str = file.split('_')[1]
+                    date_time = datetime.strptime(f"{date_str}_{time_str}", '%Y-%m-%d_%H-%M-%S')
+                    
+                    # Get corresponding report file
+                    report_file = f"{date_str}_{time_str}_report.txt"
+                    report_path = os.path.join(reports_dir, report_file)
+                    
+                    audio_files.append({
+                        'date': date_time,
+                        'audio_file': file,
+                        'audio_path': os.path.join(audio_dir, file),
+                        'report_file': report_file,
+                        'report_path': report_path
+                    })
+                except Exception as e:
+                    print(f"Error processing file {file}: {e}")
+                    continue
+        
+        # Sort files by date (newest first)
+        audio_files.sort(key=lambda x: x['date'], reverse=True)
+        
+        # Display files in a table format
+        for file in audio_files:
+            with st.container():
+                col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
+                
+                with col1:
+                    st.write(file['audio_file'])
+                with col2:
+                    st.write(file['date'].strftime('%Y-%m-%d'))
+                with col3:
+                    st.write(file['date'].strftime('%H:%M:%S'))
+                with col4:
+                    if st.button("🗑️ Delete", key=file['audio_file']):
+                        try:
+                            # Delete audio file
+                            if os.path.exists(file['audio_path']):
+                                os.remove(file['audio_path'])
+                            
+                            # Delete report file if it exists
+                            if os.path.exists(file['report_path']):
+                                os.remove(file['report_path'])
+                            
+                            st.success("Files deleted successfully!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Error deleting files: {e}")
+                
+                st.divider()
 
 if __name__ == "__main__":
     main()

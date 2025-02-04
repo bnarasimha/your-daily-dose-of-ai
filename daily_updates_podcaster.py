@@ -3,7 +3,7 @@ from crewai.tools import tool
 from gtts import gTTS
 from datetime import datetime
 import os
-
+import streamlit as st
 @tool("Podcast Tool")
 def podcast_tool(file_path: str) -> str:
     """
@@ -15,7 +15,12 @@ def podcast_tool(file_path: str) -> str:
     Returns:
         str: The path to the generated podcast audio file.
     """
-    audio_file_name = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_podcast.mp3"
+    
+    if st.session_state["use_saved_urls"]:
+        audio_file_name = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_podcast_custom.mp3"
+    else:
+        audio_file_name = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_podcast_daily.mp3"
+    
     audio_file_path = os.path.join("audio_files", audio_file_name)
 
     with open(file_path, 'r', encoding='utf-8') as file:

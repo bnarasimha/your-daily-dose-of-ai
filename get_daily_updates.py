@@ -66,7 +66,11 @@ class DailyUpdatesFlow(Flow):
             os.makedirs(reports_dir)
 
         # Create filename with date and time
-        filename = f"{today.strftime('%Y-%m-%d_%H-%M-%S')}_report.txt"
+        if st.session_state["use_saved_urls"]:
+            filename = f"{today.strftime('%Y-%m-%d_%H-%M-%S')}_report_custom.txt"
+        else:
+            filename = f"{today.strftime('%Y-%m-%d_%H-%M-%S')}_report_daily.txt"
+
         file_path = os.path.join(reports_dir, filename)
 
         with open(file_path, 'a', newline='', encoding='utf-8') as file:
