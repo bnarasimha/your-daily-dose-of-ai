@@ -1,4 +1,4 @@
-# Daily Updates App
+# Daily Dose of AI
 
 A Streamlit application that creates AI-powered audio podcasts from web content and custom URLs. The application scrapes content, generates summaries, and converts them into audio format for easy consumption.
 
