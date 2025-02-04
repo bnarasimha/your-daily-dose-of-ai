@@ -30,7 +30,7 @@ git clone https://github.com/bnarasimha/daily-dose-of-ai.git
 
 2. Navigate to the project directory:
 
-cd daily-dose-of-ai-app
+cd daily-dose-of-ai
 
 3. Install required packages:
 
