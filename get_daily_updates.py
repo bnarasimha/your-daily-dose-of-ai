@@ -9,7 +9,7 @@ from daily_updates_podcaster import podcast_agent, podcast_task
 from crewai.tools import tool
 from gtts import gTTS
 from database import URLDatabase
-
+import streamlit as st
 load_dotenv()
 
 class DailyUpdatesFlow(Flow):    
@@ -65,8 +65,8 @@ class DailyUpdatesFlow(Flow):
         if not os.path.exists(reports_dir):
             os.makedirs(reports_dir)
 
-        # Create filename with date
-        filename = f"{today.strftime('%Y-%m-%d')}_report.txt"
+        # Create filename with date and time
+        filename = f"{today.strftime('%Y-%m-%d_%H-%M-%S')}_report.txt"
         file_path = os.path.join(reports_dir, filename)
 
         with open(file_path, 'a', newline='', encoding='utf-8') as file:
@@ -79,7 +79,8 @@ class DailyUpdatesFlow(Flow):
         return file_path
 
 
-def get_content():
+def get_content(use_saved_urls=False):
+    st.session_state["use_saved_urls"] = use_saved_urls
     flow = DailyUpdatesFlow()
     result = flow.kickoff()  
     return result

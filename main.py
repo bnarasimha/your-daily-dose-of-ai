@@ -5,7 +5,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from daily_updates_urls_finder import daily_updates_task
 from database import URLDatabase
-
+from get_daily_updates import get_content
 load_dotenv()
 
 def get_audio_files():
@@ -38,7 +38,7 @@ def main():
     db = URLDatabase()
     
     # Create tabs
-    tab1, tab2 = st.tabs(["🎧 Listen Podcasts", "➕ Add Custom URL"])
+    tab1, tab2 = st.tabs(["🎧 Listen AI Doses", "➕ Create New AI Dose"])
     
     # Tab 1: Listen to Podcasts
     with tab1:
@@ -74,7 +74,26 @@ def main():
     
     # Tab 2: Add Custom URL
     with tab2:
-        st.header("Add Custom URL")
+        # Section 1: Create Today's Podcast
+        st.header("Create Today's AI Dose", divider=True)
+        st.write("System automatically creates podcast from today's updates searching the web. Click the button below to continue.")
+        if st.button("🎙️ Create Today's AI Dose", type="primary", use_container_width=True):
+            with st.spinner('Creating today\'s AI Dose...'):
+                result = get_content(use_saved_urls=False)
+                if result:
+                    st.success("Today's AI Dose created successfully!")
+                else:
+                    st.error("Failed to create AI Dose")
+
+                
+        st.write("")
+        st.write("")
+
+        # Section 2: Saved URLs and Create from Saved
+        st.header("Create AI Dose from Saved URLs", divider=True)
+        st.write("System automatically creates podcast from saved URLs. You can add any URL to this list by entering the URL and clicking Add URL button. Finally click the 'Create Podcast from Saved URLs' below to continue.")
+        # Section 3: Add Custom URL
+        st.subheader("Add Custom URL")
         new_url = st.text_input(
             "Enter URL to include in podcast:", 
             placeholder="https://example.com"
@@ -85,15 +104,13 @@ def main():
             if st.button("Add URL", use_container_width=True):
                 if new_url:
                     if db.add_url(new_url):
-                        #st.success(f"URL added successfully: {new_url}")
                         st.rerun()
                     else:
                         st.warning("URL already exists in database")
                 else:
                     st.warning("Please enter a valid URL")
         
-        # Display existing URLs
-        st.subheader("Saved URLs")
+        
         urls = db.get_all_urls()
         if urls:
             for url, added_date in urls:
@@ -106,8 +123,21 @@ def main():
                     if st.button("Delete", key=url):
                         if db.delete_url(url):
                             st.rerun()
+            
+            # Add some space before the button
+            st.write("")
+            
+            # Create Podcast from Saved URLs button
+            if st.button("📑 Create AI Dose from Saved URLs", type="primary", use_container_width=True):
+                with st.spinner('Creating AI Dose from saved URLs...'):
+                    result = get_content(use_saved_urls=True)
+                    if result:
+                        st.success("AI Dose from saved URLs created successfully!")
+                    else:
+                        st.error("Failed to create AI Dose")
         else:
             st.info("No custom URLs added yet")
+
 
 if __name__ == "__main__":
     main()
