@@ -26,7 +26,7 @@ A Streamlit application that creates AI-powered audio podcasts from web content 
 
 1. Clone the repository:
 
-git clone https://github.com/your-repo/daily-dose-of-ai-app.git
+git clone https://github.com/bnarasimha/daily-dose-of-ai.git
 
 2. Navigate to the project directory:
 
