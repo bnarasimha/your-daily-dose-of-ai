@@ -166,22 +166,21 @@ def main():
         
         # Display files in a table format
         for udu_id, reference_urls, audio_filename, created_at in daily_updates:
+            audio_path = os.path.join("audio_files", audio_filename)
             with st.container():
-                col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
+                col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
                 
                 with col1:
-                    st.write(audio_filename)
-                with col2:
                     st.write(created_at.strftime('%Y-%m-%d'))
-                with col3:
+                with col2:
                     st.write(created_at.strftime('%H:%M:%S'))
+                with col3:
+                    st.audio(audio_path)
                 with col4:
-                    if st.button("🗑️ Delete", key=audio_filename):
+                    if st.button("🗑️ Delete", key=f"delete_btn_{udu_id}"):
                         try:
-                            # Delete from database
                             if db.delete_daily_update(udu_id, u_id):
-                                # Delete audio file
-                                audio_path = os.path.join("audio_files", audio_filename)
+                                
                                 if os.path.exists(audio_path):
                                     os.remove(audio_path)
                                 st.success("Record deleted successfully!")

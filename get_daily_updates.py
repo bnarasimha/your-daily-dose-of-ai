@@ -60,6 +60,8 @@ class DailyUpdatesFlow(Flow):
 
             return daily_updates_list
         else:
+            u_id = st.session_state["u_id"]
+            db.delete_daily_update(udu_id, u_id)
             st.warning("No daily updates found. Please try again later.")
             return None
     

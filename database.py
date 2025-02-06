@@ -209,7 +209,7 @@ class Database:
             
             # First, verify this update belongs to the user
             cursor.execute("""
-                SELECT audio_filename FROM user_daily_updates 
+                SELECT udu_id FROM user_daily_updates 
                 WHERE udu_id = ? AND u_id = ?
             """, (udu_id, u_id))
             result = cursor.fetchone()
@@ -240,6 +240,27 @@ class Database:
         finally:
             conn.close()
 
+    
+    def delete_incomplete_daily_update(self, udu_id, u_id):
+        """Delete daily update and related records"""
+        conn = sqlite3.connect(self.db_name)
+        cursor = conn.cursor()
+        
+        try:            
+            cursor.execute("""
+                DELETE FROM user_daily_updates 
+                WHERE udu_id = ? AND u_id = ?
+            """, (udu_id, u_id))
+            
+            conn.commit()
+        except Exception as e:
+            print(f"Error deleting daily update: {e}")
+            return False
+        finally:
+            conn.close()
+
+    
+    
     def close(self):
         """No need to explicitly close for SQLite, but keeping for compatibility"""
         pass 
