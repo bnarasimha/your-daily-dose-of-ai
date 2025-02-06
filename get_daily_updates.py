@@ -1,94 +1,97 @@
 import os
 from datetime import datetime
 from dotenv import load_dotenv
-from crewai import Crew,  Flow
+from crewai import Crew, Flow
 from crewai.flow.flow import listen, start
-from daily_updates_urls_finder import daily_updates_finder, daily_updates_task
-from daily_updates_scraper import daily_updates_scraper_agent, daily_updates_scrape_task, DailyUpdates
+from daily_updates_urls_finder import daily_updates_finder, daily_updates_task, DailyUpdatesUrls
+from daily_updates_scraper import daily_updates_scraper_agent, daily_updates_scrape_task, DailyUpdates, DailyUpdatesList
 from daily_updates_podcaster import podcast_agent, podcast_task
-from crewai.tools import tool
-from gtts import gTTS
-from database import URLDatabase
+from database import Database
 import streamlit as st
+
 load_dotenv()
 
 class DailyUpdatesFlow(Flow):    
     @start()
     def find_daily_updates(self):  
-        db = URLDatabase()
-        custom_urls = [url[0] for url in db.get_all_urls()]  # Extract URLs from tuples
-        print(custom_urls)
+        db = Database()   
+        username = st.session_state["username"]
+        u_id = db.get_user_id(username)
+        custom_urls = db.get_user_custom_urls(u_id)
+
         daily_updates_finding_crew = Crew(
             agents=[daily_updates_finder], 
             tasks=[daily_updates_task]
         )
 
-        daily_updates = daily_updates_finding_crew.kickoff(inputs={"custom_urls": custom_urls})
-        return daily_updates 
+        if st.session_state["use_saved_urls"]:
+            urls_list = [url[0] for url in custom_urls]
+            daily_updates_urls = DailyUpdatesUrls(urls=urls_list)
+        else:
+            result = daily_updates_finding_crew.kickoff()
+            daily_updates_urls = DailyUpdatesUrls(urls=result["urls"])
+        
+        #print(daily_updates_urls)
+
+        udu_id = db.create_daily_update(u_id, reference_urls=daily_updates_urls.urls)
+        st.session_state["udu_id"] = udu_id
+        st.session_state["u_id"] = u_id
+        return daily_updates_urls
     
     @listen(find_daily_updates)
-    def scrape_daily_updates(self, daily_updates):
+    def scrape_daily_updates(self, daily_updates_urls):
+        db = Database()   
         daily_updates_scraping_crew = Crew(
             agents=[daily_updates_scraper_agent], 
             tasks=[daily_updates_scrape_task]
         )
-            
-        daily_updates_urls = ", ".join(daily_updates["urls"])
 
-        daily_updates_list = daily_updates_scraping_crew.kickoff(inputs={"urls": daily_updates_urls})
+        daily_updates_urls = ", ".join(daily_updates_urls.urls)
+        result = daily_updates_scraping_crew.kickoff(inputs={"urls": daily_updates_urls})
+        daily_updates_list = DailyUpdatesList(updates=result["updates"])
 
-        return daily_updates_list 
+        #print(daily_updates_list)
 
-    @listen(scrape_daily_updates)
-    def log_daily_updates(self, daily_updates_list):
-        
-        today = datetime.now()
-        file_path = self.write_report_to_file(daily_updates_list, today)
+        if daily_updates_list and daily_updates_list.updates and len(daily_updates_list.updates) > 0:
+            udu_id = st.session_state["udu_id"]
 
-        return file_path
-    
-    @listen(log_daily_updates)
-    def convert_to_podcast(self, file_path):
-        podcast_crew = Crew(
-            agents=[podcast_agent], 
-            tasks=[podcast_task]
-        )
+            for update in daily_updates_list.updates:
+                db.create_daily_update_scrapes(udu_id, update.title, update.summary, update.url)
 
-        daily_updates_podcast = podcast_crew.kickoff(inputs={"file_path": file_path})
-        return daily_updates_podcast
-
-    def write_report_to_file(self, daily_updates_list, today):
-        """Write the daily updates report to a txt file"""
-
-        reports_dir = "daily_reports"
-        # Create reports directory if it doesn't exist
-        if not os.path.exists(reports_dir):
-            os.makedirs(reports_dir)
-
-        # Create filename with date and time
-        if st.session_state["use_saved_urls"]:
-            filename = f"{today.strftime('%Y-%m-%d_%H-%M-%S')}_report_custom.txt"
+            return daily_updates_list
         else:
-            filename = f"{today.strftime('%Y-%m-%d_%H-%M-%S')}_report_daily.txt"
+            st.warning("No daily updates found. Please try again later.")
+            return None
+    
+    @listen(scrape_daily_updates)
+    def convert_to_podcast(self, daily_updates_list):
+        if daily_updates_list and daily_updates_list.updates and len(daily_updates_list.updates) > 0:
+            db = Database()   
+            podcast_crew = Crew(
+                agents=[podcast_agent], 
+                tasks=[podcast_task]
+            )
+            
+            contents = ""   
+            for update in daily_updates_list.updates:
+                contents += f"{update.title}\n{update.summary}\n\n"
 
-        file_path = os.path.join(reports_dir, filename)
+            result = podcast_crew.kickoff(inputs={"contents": contents})
 
-        with open(file_path, 'a', newline='', encoding='utf-8') as file:
-            for item in daily_updates_list["updates"]:
-                file.write(f"{item.title}\n")
-                file.write(f"{item.summary}\n")
-                file.write(f"\n")
-            file.write("\n")        
+            audio_filename = result["audio_filename"]
+            udu_id = st.session_state["udu_id"]
+            db.update_audio_filename(udu_id, audio_filename)
 
-        return file_path
-
+            return result
+        else:
+            st.warning("No daily updates found. Please try again later.")
+            return None
 
 def get_content(use_saved_urls=False):
     st.session_state["use_saved_urls"] = use_saved_urls
     flow = DailyUpdatesFlow()
     result = flow.kickoff()  
     return result
-
 
 if __name__ == "__main__":
     get_content()

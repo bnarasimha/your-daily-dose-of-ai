@@ -22,6 +22,20 @@ A Streamlit application that creates AI-powered audio podcasts from web content 
 - Delete unwanted podcasts and their associated report files
 - Organized display with easy-to-use controls
 
+## Configuration
+
+The application supports multiple AI providers:
+
+1. OpenAI (default)
+   - Set `AI_PROVIDER=openai`
+   - Requires `OPENAI_API_KEY`
+
+2. Anthropic Claude
+   - Set `AI_PROVIDER=anthropic`
+   - Requires `ANTHROPIC_API_KEY`
+
+You can switch providers by setting the `AI_PROVIDER` environment variable in the `.env` file.
+
 ## Installation
 
 1. Clone the repository:
