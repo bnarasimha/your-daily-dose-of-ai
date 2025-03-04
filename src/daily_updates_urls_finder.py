@@ -2,8 +2,7 @@ from crewai import Agent, Task
 from pydantic import BaseModel, Field
 from typing import List
 from crewai_tools import SerperDevTool
-import streamlit as st
-from ai_config import create_agent
+from src.ai_config import create_agent
 
 class DailyUpdatesUrls(BaseModel):
     urls: List[str] = Field(..., description="Urls which contains latest news on AI.")

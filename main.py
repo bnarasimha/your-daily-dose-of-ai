@@ -3,9 +3,9 @@ import os
 from datetime import datetime
 import pandas as pd
 from dotenv import load_dotenv
-from daily_updates_urls_finder import daily_updates_task
-from database import Database
-from get_daily_updates import get_content
+from src.daily_updates_urls_finder import daily_updates_finder, daily_updates_task
+from src.database import Database
+from src.get_daily_updates import get_content
 load_dotenv()
 
 def get_audio_files():
@@ -47,7 +47,7 @@ def main():
     
     # Initialize database
     db = Database()
-    username = st.session_state.get("username", "bnarasimha21@gmail.com")
+    username = st.session_state.get("username")
     db.add_user(username)  # This will do nothing if user already exists
     u_id = db.get_user_id(username)
     
@@ -93,9 +93,8 @@ def main():
 
     # Tab 2: Create New AI Dose
     with tab2:
-        # Section 1: Create Today's Podcast
         st.header("Create Today's AI Dose", divider=True)
-        st.write("System automatically creates podcast from today's updates searching the web.")
+        st.write("System automatically creates audio file from today's updates searching the web.")
         if st.button("🎙️ Create Today's AI Dose", type="primary", use_container_width=True):
             with st.spinner('Creating today\'s AI Dose...'):
                 result = get_content(use_saved_urls=False)
@@ -109,10 +108,10 @@ def main():
 
         # Section 2: Create from Saved URLs
         st.header("Create AI Dose from Saved URLs", divider=True)
-        st.write("System automatically creates podcast from saved URLs. You can add any URL to this list by entering the URL and clicking Add URL button. Finally click the 'Create Podcast from Saved URLs' below to continue.")
+        st.write("System automatically creates audio file from saved URLs. You can add any URL to this list by entering the URL and clicking Add URL button. Finally click the 'Create AI Dose from Saved URLs' below to continue.")
 
         st.subheader("Add Custom URL")
-        new_url = st.text_input("Enter URL to include in podcast:", placeholder="https://example.com")
+        new_url = st.text_input("Enter URL to include in AI dose:", placeholder="https://example.com")
         
         col1, col2, col3 = st.columns([2, 1, 2])
         with col2:

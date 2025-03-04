@@ -5,7 +5,7 @@ from datetime import datetime
 import os
 import streamlit as st
 from pydantic import BaseModel, Field
-from ai_config import create_agent
+from src.ai_config import create_agent
 
 class AudioFile(BaseModel):
     audio_filename: str = Field(..., description="Name of the audio file")

@@ -2,7 +2,7 @@ from crewai import Agent, Task
 from crewai_tools import ScrapeWebsiteTool
 from pydantic import BaseModel, Field
 from typing import List
-from ai_config import create_agent
+from src.ai_config import create_agent
 
 class DailyUpdates(BaseModel):
     title: str = Field(..., description="Title of the news")

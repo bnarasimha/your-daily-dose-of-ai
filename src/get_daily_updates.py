@@ -3,10 +3,10 @@ from datetime import datetime
 from dotenv import load_dotenv
 from crewai import Crew, Flow
 from crewai.flow.flow import listen, start
-from daily_updates_urls_finder import daily_updates_finder, daily_updates_task, DailyUpdatesUrls
-from daily_updates_scraper import daily_updates_scraper_agent, daily_updates_scrape_task, DailyUpdates, DailyUpdatesList
-from daily_updates_podcaster import podcast_agent, podcast_task
-from database import Database
+from src.daily_updates_urls_finder import daily_updates_finder, daily_updates_task, DailyUpdatesUrls
+from src.daily_updates_scraper import daily_updates_scraper_agent, daily_updates_scrape_task, DailyUpdates, DailyUpdatesList
+from src.daily_updates_podcaster import podcast_agent, podcast_task
+from src.database import Database
 import streamlit as st
 
 load_dotenv()
@@ -30,8 +30,6 @@ class DailyUpdatesFlow(Flow):
         else:
             result = daily_updates_finding_crew.kickoff()
             daily_updates_urls = DailyUpdatesUrls(urls=result["urls"])
-        
-        #print(daily_updates_urls)
 
         udu_id = db.create_daily_update(u_id, reference_urls=daily_updates_urls.urls)
         st.session_state["udu_id"] = udu_id
@@ -49,8 +47,6 @@ class DailyUpdatesFlow(Flow):
         daily_updates_urls = ", ".join(daily_updates_urls.urls)
         result = daily_updates_scraping_crew.kickoff(inputs={"urls": daily_updates_urls})
         daily_updates_list = DailyUpdatesList(updates=result["updates"])
-
-        #print(daily_updates_list)
 
         if daily_updates_list and daily_updates_list.updates and len(daily_updates_list.updates) > 0:
             udu_id = st.session_state["udu_id"]
