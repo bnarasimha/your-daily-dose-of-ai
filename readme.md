@@ -1,4 +1,4 @@
-# Daily Dose of AI
+# Your Daily Dose of AI
 
 A Streamlit application that creates AI-powered audio podcasts from web content and custom URLs. The application scrapes content, generates summaries, and converts them into audio format for easy consumption.
 
@@ -22,20 +22,6 @@ A Streamlit application that creates AI-powered audio podcasts from web content 
 - Delete unwanted podcasts and their associated report files
 - Organized display with easy-to-use controls
 
-## Configuration
-
-The application supports multiple AI providers:
-
-1. OpenAI (default)
-   - Set `AI_PROVIDER=openai`
-   - Requires `OPENAI_API_KEY`
-
-2. Anthropic Claude
-   - Set `AI_PROVIDER=anthropic`
-   - Requires `ANTHROPIC_API_KEY`
-
-You can switch providers by setting the `AI_PROVIDER` environment variable in the `.env` file.
-
 ## Installation
 
 1. Clone the repository:
@@ -50,8 +36,9 @@ cd daily-dose-of-ai
 
 pip install -r requirements.txt
 
-4. Set up environment variables:
-Create a `.env` file in the root directory and add your API keys:
+4. Set up environment variables:  
+Copy `.env.example` file and create a `.env` file in the root directory and update API keys.  
+[Here](https://github.com/do-community/genai-agent-workshop/blob/main/STEP3_GENAI_AGENT.md#:~:text=GenAI%20Agent%20Quickstart%20Guide) you can find details about creating Agent in GenAI Platform.
 
 ## Usage
 
@@ -59,17 +46,20 @@ Create a `.env` file in the root directory and add your API keys:
 
 streamlit run main.py
 
-2. Access the application in your web browser at `http://localhost:8501`
+2. Access the application in your web browser at `http://localhost:8501` (Or click the Url in terminal)
 
 ## Project Structure
 
 ```
 ├── main.py                    # Main Streamlit application
 ├── database.py               # SQLite database operations
-├── get_daily_updates.py      # Content scraping and processing
-├── daily_updates_urls_finder.py  # URL finding and management
+├── src               # Source files
+   ├── get_daily_updates.py      # Run the flow
+   ├── daily_updates_urls_finder.py  # URL finding and listing
+   ├── daily_updates_scraper.py  # URL scraper and highlights generator
+   ├── daily_updates_podcaster.py  # Audio file creator
+   ├── database.py  # Handle database operations
 ├── audio_files/             # Directory for generated audio files
-├── daily_reports/          # Directory for text reports
 └── custom_urls.db          # SQLite database for custom URLs
 ```
 
@@ -95,6 +85,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
+- GenAI Platform for LLama Models
 - OpenAI for GPT models
 - Streamlit for the web framework
 - Google Text-to-Speech for audio generation

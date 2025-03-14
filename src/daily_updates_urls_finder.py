@@ -1,18 +1,21 @@
-from crewai import Agent, Task
+from crewai import Agent, Task, LLM
 from pydantic import BaseModel, Field
 from typing import List
 from crewai_tools import SerperDevTool
-from src.ai_config import create_agent
+import litellm
+from litellm import CustomLLM, completion, get_llm_provider
+from openai import OpenAI
+import os
 
 class DailyUpdatesUrls(BaseModel):
     urls: List[str] = Field(..., description="Urls which contains latest news on AI.")
 
 
-daily_updates_finder = create_agent(
+daily_updates_finder = Agent(
     role="Daily Updates Finder",
     goal="Find the Urls which contains latest news on AI.",
     backstory="You are an expert Url finder who specializes in finding the Urls which contains latest news on AI.", 
-    verbose=True,
+    verbose=True
 )
 
 daily_updates_task = Task(
