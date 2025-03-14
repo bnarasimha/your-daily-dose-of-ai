@@ -165,6 +165,9 @@ def main():
         
         # Display files in a table format
         for udu_id, reference_urls, audio_filename, created_at in daily_updates:
+            if not audio_filename:
+                continue
+                
             audio_path = os.path.join("audio_files", audio_filename)
             with st.container():
                 col1, col2, col3, col4 = st.columns([1, 1, 1, 1])

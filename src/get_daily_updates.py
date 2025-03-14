@@ -92,6 +92,7 @@ def get_content(use_saved_urls=False):
     return result
 
 if __name__ == "__main__":
+    st.session_state["username"] = "bnarasimha21@gmail.com"
     get_content()
 
 
